@@ -190,5 +190,5 @@ A：逐章节独立调用LLM，每章各有独立 token 预算，不再因总 to
 **Q：连接超时（ReadTimeout）？**
 A：逐章节生成总耗时约为章节数 × 单章时间，已将单次超时设为 300 秒。如网络不稳定，可在 `.env` 中降低 `REPORT_TARGET_CHARS`（如 3000）减少每章生成量。
 
-
+## <mark>如有建议或者问题,欢迎issue或者邮箱call me</mark>
 
