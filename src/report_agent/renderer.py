@@ -320,40 +320,35 @@ def _insert_student_info(doc: Document, info: Dict[str, str]):
 def _add_figure_captions(doc: Document):
     """Insert 'Figure N' caption after each image paragraph (skip if next para already looks like a caption)."""
     from docx.oxml.ns import qn
+    from lxml import etree
 
     # Collect indices of image paragraphs first
     paras = list(doc.paragraphs)
     image_indices = [i for i, p in enumerate(paras) if _para_has_image(p)]
 
+    # Forward pass: assign figure numbers in document order, skipping existing captions
     fig_num = 1
-    # Process in reverse so insertions don't shift earlier indices
-    for idx in reversed(image_indices):
-        para = paras[idx]
-        # Check if the next paragraph already looks like a caption (contains "图")
+    insert_plan = []  # list of (idx, fig_num) for indices that need a caption
+    for idx in image_indices:
         next_text = paras[idx + 1].text.strip() if idx + 1 < len(paras) else ""
         if next_text.startswith("图") or next_text.startswith("Fig"):
             fig_num += 1
             continue
+        insert_plan.append((idx, fig_num))
+        fig_num += 1
 
-        # Insert caption paragraph after this image paragraph via XML
-        from lxml import etree
-        caption_p = etree.SubElement(etree.Element("root"), qn("w:p"))
+    # Reverse pass: insert captions so earlier indices are not shifted
+    for idx, num in reversed(insert_plan):
+        para = paras[idx]
         new_para = doc.add_paragraph()
         new_para.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
         new_para.paragraph_format.space_before = Pt(2)
         new_para.paragraph_format.space_after = Pt(6)
-        run = new_para.add_run(f"图{fig_num}  ")
+        run = new_para.add_run(f"图{num}  ")
         run.font.size = Pt(10.5)
 
         # Move the new paragraph element to right after the image paragraph
         para._p.addnext(new_para._p)
-        # Remove from body tail (it was appended to end)
-        body = doc.element.body
-        if new_para._p in body:
-            body.remove(new_para._p)
-        para._p.addnext(new_para._p)
-
-        fig_num += 1
 
 
 def render_report_from_draft(
@@ -400,6 +395,15 @@ def render_report_from_draft(
     # Build style lookup: name -> spec
     para_styles = fm.get("paragraphStyles", [])
     style_map: Dict[str, Dict[str, Any]] = {s.get("name"): s for s in para_styles if s.get("name")}
+
+    # Pandoc uses "Body Text"/"First Paragraph" etc. instead of "Normal";
+    # map them to the Normal spec so body paragraphs get formatted correctly.
+    _NORMAL_ALIASES = {"Body Text", "First Paragraph", "Compact", "Body Text First Indent"}
+    normal_spec = style_map.get("Normal")
+    if normal_spec:
+        for alias in _NORMAL_ALIASES:
+            if alias not in style_map:
+                style_map[alias] = normal_spec
 
     for p in doc.paragraphs:
         if _para_has_image(p):

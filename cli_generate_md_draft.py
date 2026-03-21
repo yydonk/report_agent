@@ -2,6 +2,8 @@ import argparse
 import json
 import os
 import re
+import subprocess
+import tempfile
 from typing import List, Dict, Any, Optional, Callable
 from src.img_agent.deepseek_client import DeepSeekClient
 from src.config.env import get_env_config
@@ -222,8 +224,56 @@ def _infer_heading_level(title: str) -> int:
     return min(dots + 1, 4)
 
 
-def write_draft_docx(chapters: List[Dict[str, Any]], out):
-    """Write chapters to a docx. `out` may be a file path string or a file-like object."""
+def _chapters_to_markdown(chapters: List[Dict[str, Any]]) -> str:
+    """Convert chapter list to a Markdown string with proper heading levels."""
+    parts = []
+    for item in chapters:
+        title = (item.get("title") or "").strip()
+        content = (item.get("content") or "").strip()
+        if title:
+            level = _infer_heading_level(title)
+            parts.append(f"{'#' * level} {title}")
+            parts.append("")
+        if content:
+            parts.append(content)
+            parts.append("")
+    return "\n".join(parts)
+
+
+def _pandoc_md_to_docx(md_text: str, out) -> None:
+    """Use pandoc to convert Markdown (with LaTeX math) to docx.
+
+    Args:
+        md_text: Markdown string, may contain $...$ and $$...$$ math.
+        out: output file path (str) or file-like object.
+    """
+    with tempfile.NamedTemporaryFile(suffix=".md", delete=False, mode="w", encoding="utf-8") as f:
+        f.write(md_text)
+        md_path = f.name
+
+    if isinstance(out, str):
+        out_path = out
+    else:
+        tmp_out = tempfile.NamedTemporaryFile(suffix=".docx", delete=False)
+        tmp_out.close()
+        out_path = tmp_out.name
+
+    try:
+        subprocess.run(
+            ["pandoc", md_path, "-o", out_path, "--from", "markdown", "--to", "docx"],
+            check=True, capture_output=True, text=True,
+        )
+        if not isinstance(out, str):
+            with open(out_path, "rb") as f:
+                out.write(f.read())
+    finally:
+        os.unlink(md_path)
+        if not isinstance(out, str):
+            os.unlink(out_path)
+
+
+def _fallback_write_docx(chapters: List[Dict[str, Any]], out):
+    """Fallback: write docx directly with python-docx (no math rendering)."""
     doc = Document()
     for item in chapters:
         title = (item.get("title") or "").strip()
@@ -237,6 +287,29 @@ def write_draft_docx(chapters: List[Dict[str, Any]], out):
                 if line:
                     doc.add_paragraph(line)
     doc.save(out)
+
+
+def write_draft_docx(chapters: List[Dict[str, Any]], out):
+    """Write chapters to a docx. `out` may be a file path string or a file-like object.
+
+    Uses pandoc for conversion so that LaTeX math ($...$, $$...$$) becomes
+    native Word equation objects. Falls back to python-docx if pandoc is not installed.
+    """
+    md_text = _chapters_to_markdown(chapters)
+    try:
+        _pandoc_md_to_docx(md_text, out)
+    except FileNotFoundError:
+        print("警告：未检测到 pandoc，数学公式将以原始文本显示。请安装 pandoc: https://pandoc.org/installing.html")
+        if hasattr(out, "seek"):
+            out.seek(0)
+            out.truncate()
+        _fallback_write_docx(chapters, out)
+    except subprocess.CalledProcessError as e:
+        print(f"警告：pandoc 转换失败（{e.stderr.strip()}），回退到 python-docx")
+        if hasattr(out, "seek"):
+            out.seek(0)
+            out.truncate()
+        _fallback_write_docx(chapters, out)
 
 
 def main():
