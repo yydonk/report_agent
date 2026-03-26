@@ -25,12 +25,17 @@ def _is_container_chapter(title: str, description: str) -> bool:
 
 def _dedup_chapter_groups(brief: list) -> list:
     """If the schema contains two complete groups both starting with a '1.' chapter,
-    keep only the last such group."""
+    merge them: unique chapters from the first group first, then all of the second group.
+    This preserves chapters like 摘要 that only appear in the first group."""
     root_one_idx = [i for i, c in enumerate(brief)
                     if re.match(r'^1[\.\s。]', (c.get("title") or "").strip())]
-    if len(root_one_idx) >= 2:
-        return brief[root_one_idx[-1]:]
-    return brief
+    if len(root_one_idx) < 2:
+        return brief
+    second_group = brief[root_one_idx[-1]:]
+    first_group = brief[:root_one_idx[-1]]
+    second_titles = {c.get("title") for c in second_group}
+    unique_first = [c for c in first_group if c.get("title") not in second_titles]
+    return unique_first + second_group
 
 
 def _get_deduped_chapters(content_schema: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -102,6 +107,7 @@ def _generate_chapter_content(
     experiment_text: str,
     target_chars: int,
     terminology: str = "中",
+    previous_summary: Optional[str] = None,
 ) -> str:
     """Call LLM once to generate content for a single chapter. Returns plain text."""
     min_wc = chapter.get("minWordCount")
@@ -112,13 +118,20 @@ def _generate_chapter_content(
 
     terminology_note = _TERMINOLOGY_PROMPT.get(terminology, _TERMINOLOGY_PROMPT["中"])
 
+    instruction = (
+        "根据章节要求与实验内容，为以下章节生成正文内容。"
+        "只输出纯文本正文，不要输出标题，不要输出JSON，不要添加额外说明。"
+        f"目标字数约 {target_chars} 字，最少 {max(min_wc_int, target_chars // 2)} 字。"
+        f"语言风格要求：{terminology_note}"
+    )
+    if previous_summary:
+        instruction += (
+            "注意：前面章节已覆盖以下内容，本章节不得重复，须聚焦本章节独有的内容：\n"
+            + previous_summary
+        )
+
     prompt = {
-        "instruction": (
-            "根据章节要求与实验内容，为以下章节生成正文内容。"
-            "只输出纯文本正文，不要输出标题，不要输出JSON，不要添加额外说明。"
-            f"目标字数约 {target_chars} 字，最少 {max(min_wc_int, target_chars // 2)} 字。"
-            f"语言风格要求：{terminology_note}"
-        ),
+        "instruction": instruction,
         "chapter_title": chapter["title"],
         "chapter_description": chapter.get("description") or "",
         "experiment_content": experiment_text,
@@ -129,6 +142,18 @@ def _generate_chapter_content(
     ]
     max_tokens = min(int(target_chars * 1.5) + 300, 4096)
     return client.chat(messages, temperature=0.25, max_tokens=max_tokens).strip()
+
+
+def _build_previous_summary(results: List[Dict[str, Any]], max_chars_per: int = 80) -> str:
+    """Build a short summary string of already-generated chapters to avoid repetition."""
+    lines = []
+    for item in results:
+        title = item.get("title", "")
+        content = (item.get("content") or "").strip()
+        snippet = content[:max_chars_per].replace("\n", " ")
+        if title:
+            lines.append(f"- 【{title}】{snippet}…")
+    return "\n".join(lines)
 
 
 def generate_draft_chapters(
@@ -157,10 +182,12 @@ def generate_draft_chapters(
             progress_cb(i, len(chapters), title)
 
         effective_budget = max(budget, 80)
+        previous_summary = _build_previous_summary(results) if results else None
 
         try:
             content = _generate_chapter_content(
-                client, chapter, experiment_text, effective_budget, terminology=terminology
+                client, chapter, experiment_text, effective_budget,
+                terminology=terminology, previous_summary=previous_summary,
             )
         except Exception as e:
             content = f"（生成失败：{e}）"

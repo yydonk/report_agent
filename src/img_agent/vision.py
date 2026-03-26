@@ -32,8 +32,8 @@ def _call_dashscope_vl(image_paths: List[str], api_key: str, model: str, prompt:
     """Call DashScope native multimodal API. Returns raw text response."""
     user_content = []
     for p in image_paths:
-        abs_path = os.path.abspath(p).replace("\\", "/")
-        user_content.append({"image": f"file:///{abs_path}"})
+        b64 = _img_to_b64(p)
+        user_content.append({"image": f"data:image/jpeg;base64,{b64}"})
     user_content.append({"text": prompt})
 
     payload = {
@@ -44,7 +44,7 @@ def _call_dashscope_vl(image_paths: List[str], api_key: str, model: str, prompt:
                 {"role": "user", "content": user_content},
             ]
         },
-        "parameters": {"temperature": 0.1, "max_tokens": 4096},
+        "parameters": {"temperature": 0.1, "max_tokens": 8192},
     }
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -118,7 +118,7 @@ def parse_with_deepseek_vision(image_paths: List[str], client: DeepSeekClient) -
     api_key = client.api_key
     model = client.model
     messages = _build_vision_messages(image_paths)
-    text = client.chat(messages, temperature=0.1, max_tokens=4096).strip()
+    text = client.chat(messages, temperature=0.1, max_tokens=8192).strip()
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end >= start:

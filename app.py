@@ -178,6 +178,7 @@ for key, default in {
     "draft_bytes": None,
     "final_bytes": None,
     "log": [],
+    "deleted_chapters": set(),
 }.items():
     if key not in st.session_state:
         st.session_state[key] = default
@@ -302,6 +303,49 @@ with col_main:
 
     tpl_file = st.file_uploader("选择模板文件", type=["docx"], key="tpl_uploader", label_visibility="collapsed")
 
+    with st.expander("导入已保存的解析结果（跳过重新解析）", expanded=False):
+        st.markdown("上传之前导出的 JSON 文件，直接恢复解析状态。两个文件均上传后点击载入。")
+        _col_imp1, _col_imp2 = st.columns(2)
+        _imp_cnt = _col_imp1.file_uploader("内容结构 content_schema.json", type=["json"], key="imp_cnt")
+        _imp_fmt = _col_imp2.file_uploader("格式规范 format_schema.json", type=["json"], key="imp_fmt")
+        _btn_col1, _btn_col2 = st.columns(2)
+        if _btn_col1.button("载入 JSON", key="btn_import_schema", use_container_width=True):
+            _ok = True
+            if _imp_cnt:
+                try:
+                    st.session_state.content_schema = json.load(_imp_cnt)
+                except Exception as _e:
+                    st.error(f"content_schema 解析失败：{_e}")
+                    _ok = False
+            else:
+                st.warning("请上传 content_schema.json")
+                _ok = False
+            if _imp_fmt:
+                try:
+                    st.session_state.format_schema = json.load(_imp_fmt)
+                except Exception as _e:
+                    st.error(f"format_schema 解析失败：{_e}")
+                    _ok = False
+            else:
+                st.warning("请上传 format_schema.json")
+                _ok = False
+            if _ok:
+                _n = len(st.session_state.content_schema.get("chapters", {}))
+                st.success(f"已载入，共 {_n} 个章节")
+                st.rerun()
+        if _btn_col2.button("使用内置默认 JSON", key="btn_import_default", use_container_width=True):
+            _base = os.path.join(os.path.dirname(__file__), "frame")
+            try:
+                with open(os.path.join(_base, "default_content_schema.json"), encoding="utf-8") as _f:
+                    st.session_state.content_schema = json.load(_f)
+                with open(os.path.join(_base, "default_format_schema.json"), encoding="utf-8") as _f:
+                    st.session_state.format_schema = json.load(_f)
+                _n = len(st.session_state.content_schema.get("chapters", {}))
+                st.success(f"已载入内置默认 JSON，共 {_n} 个章节")
+                st.rerun()
+            except Exception as _e:
+                st.error(f"加载默认 JSON 失败：{_e}")
+
     if st.button("解析模板", type="primary", key="btn_parse_tpl"):
         if not tpl_file:
             st.warning("请先上传模板文件")
@@ -323,12 +367,16 @@ with col_main:
                     with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as tmp:
                         tmp.write(tpl_bytes)
                         tmp_path = tmp.name
-
-                    base = analyze_docx(tmp_path)
-                    client_txt = _make_client(model_text)
-                    llm_obj = refine_with_llm(base, client_txt)
-                    normalized = normalize_spec(base, llm_obj, tmp_path)
-                    os.unlink(tmp_path)
+                    try:
+                        base = analyze_docx(tmp_path)
+                        client_txt = _make_client(model_text)
+                        llm_obj = refine_with_llm(base, client_txt)
+                        normalized = normalize_spec(base, llm_obj, tmp_path)
+                    finally:
+                        try:
+                            os.unlink(tmp_path)
+                        except OSError:
+                            pass
 
                     fmt = build_format_schema([normalized])
                     cnt = build_content_schema([normalized])
@@ -337,15 +385,68 @@ with col_main:
                     st.session_state.format_schema = json.loads(json.dumps(fmt, ensure_ascii=False, default=str))
                     st.session_state.content_schema = json.loads(json.dumps(cnt, ensure_ascii=False, default=str))
 
+                    # ── content_schema 兜底 ──────────────────────────────
                     n_chapters = len(cnt.get("chapters", {}))
-                    _log(f"模板解析完成，识别 {n_chapters} 个章节", "ok")
+                    if n_chapters == 0:
+                        _log("未识别到章节，使用内置默认章节结构兜底", "err")
+                        _cnt_fallback = os.path.join(os.path.dirname(__file__), "frame", "default_content_schema.json")
+                        try:
+                            with open(_cnt_fallback, encoding="utf-8") as _f:
+                                st.session_state.content_schema = json.load(_f)
+                            n_chapters = len(st.session_state.content_schema.get("chapters", {}))
+                            _log(f"已加载默认章节结构，共 {n_chapters} 个章节（格式仍以您的模板为准）", "ok")
+                        except Exception as fe:
+                            _log(f"加载默认章节结构失败：{fe}", "err")
+                    else:
+                        _log(f"模板解析完成，识别 {n_chapters} 个章节", "ok")
+
+                    # ── format_schema 兜底 ───────────────────────────────
+                    _docs = st.session_state.format_schema.get("documents", [])
+                    _styles = (_docs[0].get("paragraphStyles", []) if _docs else [])
+                    _has_font = any(s.get("fontFamily") for s in _styles)
+                    if not _has_font:
+                        _log("未识别到段落格式，使用内置默认格式规范兜底", "err")
+                        _fmt_fallback = os.path.join(os.path.dirname(__file__), "frame", "default_format_schema.json")
+                        try:
+                            with open(_fmt_fallback, encoding="utf-8") as _f:
+                                st.session_state.format_schema = json.load(_f)
+                            _log("已加载默认格式规范（字体/行距/页边距）", "ok")
+                        except Exception as fe:
+                            _log(f"加载默认格式规范失败：{fe}", "err")
                 except Exception as e:
                     _log(f"解析失败：{e}", "err")
             _render_status()
 
-    if st.session_state.format_schema:
-        n = len(st.session_state.content_schema.get("chapters", {}))
-        st.success(f"模板已就绪，共 {n} 个章节")
+    _n_chapters = len((st.session_state.content_schema or {}).get("chapters", {}))
+    if st.session_state.format_schema and _n_chapters > 0:
+        st.success(f"模板已就绪，共 {_n_chapters} 个章节")
+    elif st.session_state.format_schema or _n_chapters > 0:
+        st.warning(f"模板部分就绪：{'格式规范已加载' if st.session_state.format_schema else '格式规范缺失'}，{'共 ' + str(_n_chapters) + ' 个章节' if _n_chapters else '章节结构缺失'}")
+
+    if st.session_state.format_schema or _n_chapters > 0:
+        with st.expander("查看 / 导出解析结果 JSON", expanded=False):
+            _dl_col1, _dl_col2 = st.columns(2)
+            _dl_col1.download_button(
+                "下载 content_schema.json",
+                data=json.dumps(st.session_state.content_schema, ensure_ascii=False, indent=2),
+                file_name="content_schema.json",
+                mime="application/json",
+                key="dl_cnt",
+                use_container_width=True,
+            )
+            _dl_col2.download_button(
+                "下载 format_schema.json",
+                data=json.dumps(st.session_state.format_schema, ensure_ascii=False, indent=2),
+                file_name="format_schema.json",
+                mime="application/json",
+                key="dl_fmt",
+                use_container_width=True,
+            )
+            tab_cnt, tab_fmt = st.tabs(["内容结构（content_schema）", "格式规范（format_schema）"])
+            with tab_cnt:
+                st.json(st.session_state.content_schema)
+            with tab_fmt:
+                st.json(st.session_state.format_schema)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -383,26 +484,34 @@ with col_main:
                     import json as _json
 
                     tmp_paths = []
-                    for name, data in img_cache:
-                        suffix = os.path.splitext(name)[1] or ".jpg"
-                        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-                            tmp.write(data)
-                            tmp_paths.append(tmp.name)
+                    try:
+                        for name, data in img_cache:
+                            suffix = os.path.splitext(name)[1] or ".jpg"
+                            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+                                tmp.write(data)
+                                tmp_paths.append(tmp.name)
 
-                    # Verify image bytes are non-empty
-                    for name, data in img_cache:
-                        _log(f"图片 {name}：{len(data):,} bytes", "info")
-                    for p in tmp_paths:
-                        size = os.path.getsize(p)
-                        _log(f"临时文件 {os.path.basename(p)}：{size:,} bytes", "info")
+                        # Verify image bytes are non-empty
+                        for name, data in img_cache:
+                            _log(f"图片 {name}：{len(data):,} bytes", "info")
+                        for p in tmp_paths:
+                            size = os.path.getsize(p)
+                            _log(f"临时文件 {os.path.basename(p)}：{size:,} bytes", "info")
 
-                    client_vis = _make_client(model_vision)
-                    messages = _build_vision_messages(tmp_paths)
-                    for p in tmp_paths:
-                        os.unlink(p)
-
-                    # Get raw response for diagnosis
-                    raw_text = client_vis.chat(messages, temperature=0.1, max_tokens=4096).strip()
+                        # qwen-vl 系列使用原生 multimodal API（base64），其他走 compatible-mode
+                        if "vl" in model_vision.lower():
+                            from src.img_agent.vision import _call_dashscope_vl, _build_vl_prompt
+                            raw_text = _call_dashscope_vl(tmp_paths, api_key, model_vision, _build_vl_prompt())
+                        else:
+                            client_vis = _make_client(model_vision)
+                            messages = _build_vision_messages(tmp_paths)
+                            raw_text = client_vis.chat(messages, temperature=0.1, max_tokens=8192).strip()
+                    finally:
+                        for p in tmp_paths:
+                            try:
+                                os.unlink(p)
+                            except OSError:
+                                pass
                     st.session_state["_vision_raw"] = raw_text  # store for display
 
                     # Try to extract JSON
@@ -493,13 +602,28 @@ with col_main:
         from cli_generate_md_draft import _get_deduped_chapters
         all_chs = _get_deduped_chapters(st.session_state.content_schema)
         with st.expander("章节字数权重（可选，默认均等）"):
-            st.caption("数值越大，该章节分配的字数越多。所有权重相对生效。")
-            cols = st.columns(2)
+            st.caption("数值越大，该章节分配的字数越多。🗑 删除章节，↩ 撤销删除。")
+            n_deleted = len(st.session_state.deleted_chapters)
+            if n_deleted:
+                if st.button(f"撤销全部删除（{n_deleted} 个）", key="btn_undo_all"):
+                    st.session_state.deleted_chapters = set()
+                    st.rerun()
             for i, ch in enumerate(all_chs):
                 title = ch["title"]
-                default = 3 if any(k in title for k in ["原理", "步骤", "数据", "分析", "误差"]) else 1
-                w = cols[i % 2].slider(title, min_value=1, max_value=10, value=default, key=f"w_{i}")
-                chapter_weights[title] = float(w)
+                if title in st.session_state.deleted_chapters:
+                    c1, c2 = st.columns([8, 1])
+                    c1.markdown(f"<span style='color:#888;text-decoration:line-through'>{title}</span>", unsafe_allow_html=True)
+                    if c2.button("↩", key=f"undo_{i}", help="撤销删除"):
+                        st.session_state.deleted_chapters.discard(title)
+                        st.rerun()
+                else:
+                    c1, c2 = st.columns([8, 1])
+                    default = 3 if any(k in title for k in ["原理", "步骤", "数据", "分析", "误差"]) else 1
+                    w = c1.slider(title, min_value=1, max_value=10, value=default, key=f"w_{i}")
+                    chapter_weights[title] = float(w)
+                    if c2.button("🗑", key=f"del_{i}", help="删除该章节"):
+                        st.session_state.deleted_chapters.add(title)
+                        st.rerun()
 
     if st.button("生成草稿", type="primary", key="btn_draft"):
         if not st.session_state.content_schema:
@@ -530,8 +654,18 @@ with col_main:
                         _log(f"[{i+1}/{total}] {title}", "info")
                         _render_status()
 
+                    # 过滤掉用户删除的章节
+                    _deleted = st.session_state.deleted_chapters
+                    if _deleted:
+                        _raw_chs = st.session_state.content_schema.get("chapters", {})
+                        _filtered_chs = {k: v for k, v in _raw_chs.items()
+                                         if v.get("title") not in _deleted}
+                        _active_schema = {**st.session_state.content_schema, "chapters": _filtered_chs}
+                    else:
+                        _active_schema = st.session_state.content_schema
+
                     chapters = generate_draft_chapters(
-                        st.session_state.content_schema,
+                        _active_schema,
                         experiment_text,
                         client_txt,
                         total_target=target_chars,
@@ -582,10 +716,10 @@ with col_main:
             _log("正在套用格式生成最终报告...")
             _render_status()
             with st.spinner("生成最终报告中..."):
+                draft_path = out_path = None
                 try:
                     from src.report_agent.renderer import render_report_from_draft
 
-                    # Write draft to temp file
                     with tempfile.NamedTemporaryFile(suffix=".docx", delete=False) as tmp_in:
                         tmp_in.write(draft_upload.read())
                         draft_path = tmp_in.name
@@ -611,12 +745,16 @@ with col_main:
                     with open(out_path, "rb") as f:
                         st.session_state.final_bytes = f.read()
 
-                    os.unlink(draft_path)
-                    os.unlink(out_path)
-
                     _log("最终报告生成完成", "ok")
                 except Exception as e:
                     _log(f"报告生成失败：{e}", "err")
+                finally:
+                    for _p in [draft_path, out_path]:
+                        if _p:
+                            try:
+                                os.unlink(_p)
+                            except OSError:
+                                pass
             _render_status()
 
     if st.session_state.final_bytes:

@@ -51,11 +51,11 @@ def _clean_heading_text(text: str) -> str:
         if not line:
             continue
         # Drop lines consisting only of format keywords
-        if all(tok in line for tok in []) or any(
+        if any(
             all(tok in line for tok in pair)
             for pair in [("宋体",), ("黑体",), ("行距",), ("缩进",)]
         ):
-            pass
+            continue
         real_lines.append(line)
     return real_lines[0] if real_lines else ""
 

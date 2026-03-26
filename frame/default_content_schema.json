@@ -1,0 +1,598 @@
+{
+  "chapters": {
+    "摘要": {
+      "title": "摘要",
+      "description": "撰写规范：以 IMRD（Introduction, Methods, Results, Discussion）为框架，100-200字。\n需涵盖：实验目的、实验方法、主要结果与结论。\n撰写完成后，写一句自我评价，重点突出摘要的最大亮点。",
+      "minWordCount": "100.00",
+      "maxWordCount": "200.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "1.实验原理": {
+      "title": "1. 实验原理",
+      "description": "说明本实验所依据的理论原理：实验是什么、依据什么原理、达成什么实验目的。\n若理论为课程已有知识，无需重复教材内容，只需引用结论并注明参考文献[1]。\n核心公式、定律、模型需明确列出。",
+      "minWordCount": "150.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "2.1实验器材": {
+      "title": "2.1 实验器材",
+      "description": "列出实验所用仪器设备及主要参数：名称、型号/版本、量程、精度等。\n仅列出支撑实验核心结论所需的必要器材，不需逐一列举所有周边元件。\n涉及电路实验时，应注明电源电压范围、数据采集频率、放大倍率、滤波截止频率等关键参数。",
+      "minWordCount": "80.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "2.2.1仪器设备": {
+      "title": "2.2.1 仪器设备",
+      "description": "描述实验平台的搭建方式及各设备的连接关系。\n说明使用了什么设备、如何使用（示波器使用方法、FFT参数设置等），以及同时进行的测量项目。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "2.2.2实验步骤": {
+      "title": "2.2.2 实验步骤",
+      "description": "从方法论角度说明本实验的总体操作方案：采用何种实验设计（单变量/对照/重复测量等）、数据采集目标与采集方式、数据分组方案。\n说明使用何种工具进行数据处理（Excel/Python/Origin/MATLAB等），并说明理由。\n本节聚焦【为什么这样做】，具体逐步操作清单写在第3章。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "2.2.3数据验证": {
+      "title": "2.2.3 数据验证",
+      "description": "描述用于验证数据有效性的方法或判断标准。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "2.2.4数据处理": {
+      "title": "2.2.4 数据处理",
+      "description": "说明数据处理方式：拟合方法、统计分析手段、误差计算方法等。\n说明选用何种平台或算法进行数值计算与可视化。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "3.实验步骤": {
+      "title": "3. 实验步骤",
+      "description": "按时间顺序列出实验的编号操作步骤（①②③……），每步说明：做了什么操作、使用了哪个仪器、设置了哪些参数、记录了哪些读数或现象。\n本节聚焦【做了什么】，不重复第2章中对方法设计原因的说明。",
+      "minWordCount": "200.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "3.1操作一": {
+      "title": "3.1 操作一",
+      "description": "描述第一组实验的操作步骤。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "3.2操作二": {
+      "title": "3.2 操作二",
+      "description": "描述第二组实验的操作步骤。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "4.实验数据": {
+      "title": "4. 实验数据",
+      "description": "记录实验中观测到的现象、测量到的数据，以表格或图形呈现。\n此部分应为原始数据，不做分析；分析内容放入第5章。",
+      "minWordCount": "100.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "5.结果分析与讨论": {
+      "title": "5. 结果分析与讨论",
+      "description": null,
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "5.1数据分析": {
+      "title": "5.1 数据分析",
+      "description": "对实验数据进行定量分析，与理论预期对比，说明是否一致；若有偏差，分析可能原因。\n如涉及统计分析，应说明使用的统计方法、概率分布及统计检验原理。\n本节聚焦数据与理论的对比结论，误差分析与改进建议写在5.2节。",
+      "minWordCount": "200.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "5.2结果优化": {
+      "title": "5.2 结果优化",
+      "description": "分析实验误差来源：系统误差（仪器精度、环境干扰等）与随机误差（操作偶然性等）各自的影响程度。\n对异常数据点给出合理解释，讨论实验局限性，并提出具体的改进建议。",
+      "minWordCount": "100.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "5.3结论与展望": {
+      "title": "5.3 结论与展望",
+      "description": "总结实验结论，逐条说明实验目的是否达成、达成程度如何。\n提出后续研究方向或应用价值。\n若有实验思考题，在本节末尾给出解答，引用文献格式注明答案来源。",
+      "minWordCount": "150.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "6.致谢": {
+      "title": "6. 致谢",
+      "description": "致谢位于报告结尾、参考文献之前。\n感谢对实验和报告撰写有直接帮助的人员：指导教师、合作同学、技术支持人员等，具体说明其帮助内容。\n这不仅是礼貌，也是对学术诚信的体现。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": false
+    },
+    "7.参考文献": {
+      "title": "7. 参考文献",
+      "description": "参考文献是报告的重要组成部分，体现信息来源的广泛程度与可靠程度。\n不得引用：实验讲义（未出版）、CSDN等非学术网站。\n推荐引用：实验指导教材、元件数据手册、经同行评审的期刊文章。\n引用时注意格式规范，推荐通过 CNKI 等知网平台获取标准引用格式。\n至少包含1条参考文献。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "1.00",
+        "max": "999.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    },
+    "8.附录": {
+      "title": "8. 附录",
+      "description": "列出报告正文未能收录但对结论有支撑作用的补充材料，例如：完整原始数据表、推导过程、程序代码片段、标定曲线等。\n每项附录应有简短说明，指出其与正文哪一结论相对应。\n若无补充材料，可注明【无】。",
+      "minWordCount": "0.00",
+      "maxWordCount": "0.00",
+      "figureTable": {
+        "minFigures": "0.00",
+        "maxFigures": "0.00",
+        "minTables": "0.00",
+        "maxTables": "0.00"
+      },
+      "dataFormat": {
+        "precision": null,
+        "units": [],
+        "examples": []
+      },
+      "citationCount": {
+        "min": "0.00",
+        "max": "0.00"
+      },
+      "qualityMetrics": [
+        {
+          "name": "relevance",
+          "weight": "0.50"
+        },
+        {
+          "name": "clarity",
+          "weight": "0.50"
+        }
+      ],
+      "validationRules": [],
+      "required": true
+    }
+  }
+}
